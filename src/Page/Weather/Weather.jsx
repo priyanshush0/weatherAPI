@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 const Weather = () => {
-  const [city, setCity] = useState("London");
+  const [city, setCity] = useState("Los Angeles, CA"); // Default city
   const [weather, setWeather] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -11,24 +11,27 @@ const Weather = () => {
     try {
       setLoading(true);
       setError(null);
+      const encodedCity = encodeURIComponent(city); // URL-encode the city name
       const response = await axios.get(
-        `http://api.weatherapi.com/v1/current.json?key=608e09aabd31453992f152714242311&q=${city}&aqi=no`
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=5b0a152759c7caa5dad89430d3e04dd9`
       );
+      console.log(response.data); // Log the response data
       setWeather(response.data);
-    } catch (err) {
+    } catch ( err) {
       setError("Failed to fetch weather data. Please check the city name.");
+      console.error("Error details:", err.response ? err.response.data : err.message); // Log the actual error for debugging
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchWeather();
+    fetchWeather(); // Fetch weather for the default city on component mount
   }, []);
 
   const handleSearch = (e) => {
     e.preventDefault();
-    fetchWeather();
+    fetchWeather(); // Fetch weather for the new city when the form is submitted
   };
 
   return (
@@ -50,23 +53,18 @@ const Weather = () => {
       {error && <p className="error-message">{error}</p>}
       {weather && !loading && !error && (
         <div className="weather-details">
+          <h2>{weather.resolvedAddress}</h2>
           <h2>
-            {weather.location.name}, {weather.location.country}
+             {weather.name}
           </h2>
           <p>
-            <strong>Temperature:</strong> {weather.current.temp_c}°C
+            <strong>Temperature:</strong> {(weather.main.temp - 273.15).toFixed(2)}°C
           </p>
           <p>
-            <strong>Condition:</strong> {weather.current.condition.text}
+            <strong>Humidity:</strong> {weather.main.humidity}%
           </p>
           <p>
-            <img src={weather.current.condition.icon} alt="Weather Icon" />
-          </p>
-          <p>
-            <strong>Humidity:</strong> {weather.current.humidity}%
-          </p>
-          <p>
-            <strong>Wind Speed:</strong> {weather.current.wind_kph} km/h
+            <strong>Wind Speed:</strong> {weather.wind.speed} km/h
           </p>
         </div>
       )}
